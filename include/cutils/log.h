@@ -44,13 +44,13 @@
 extern "C" {
 #endif
 
-// ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
 
-/*
- * Normally we strip ALOGV (VERBOSE messages) from release builds.
- * You can modify this (for example with "#define LOG_NDEBUG 0"
- * at the top of your source file) to change that behavior.
- */
+    /*
+     * Normally we strip ALOGV (VERBOSE messages) from release builds.
+     * You can modify this (for example with "#define LOG_NDEBUG 0"
+     * at the top of your source file) to change that behavior.
+     */
 #ifndef LOG_NDEBUG
 #ifdef NDEBUG
 #define LOG_NDEBUG 1
@@ -59,20 +59,87 @@ extern "C" {
 #endif
 #endif
 
-/*
- * This is the local tag used for the following simplified
- * logging macros.  You can change this preprocessor definition
- * before using the other macros to change the tag.
- */
+    /*
+     * This is the local tag used for the following simplified
+     * logging macros.  You can change this preprocessor definition
+     * before using the other macros to change the tag.
+     */
 #ifndef LOG_TAG
 #define LOG_TAG NULL
 #endif
 
-// ---------------------------------------------------------------------
+#ifndef LOG_FL                   // log with file and line info
 
-/*
- * Simplified macro to send a verbose log message using the current LOG_TAG.
- */
+#include <sys/types.h>
+#include <sys/syscall.h>  
+#define gettid() syscall(__NR_gettid)
+
+#include "base_file_and_line.h"
+    
+#define LOGFL_BUFFER_SIZE 1024
+#define LOG_FL(priority, tag, fmt, ...)                     \
+    do {                                                    \
+        char _buf_[LOGFL_BUFFER_SIZE];                      \
+        const char *_file_name_ = __FILE__;                 \
+        const size_t _last_ = sizeof(_buf_)-1;              \
+        snprintf(_buf_, _last_, "%s(%d)#%s " fmt,           \
+                 BASE_FILE_NAME(_file_name_), __LINE__,     \
+                 BASE_FUNC_NAME(__func__), ## __VA_ARGS__); \
+        _buf_[_last_] = '\0';                               \
+        LOG_PRI_PUTS(ANDROID_##priority, tag, _buf_);       \
+    } while (0)
+
+#define LOG_FLT(priority, tag, fmt, ...)                                \
+    do {                                                                \
+        char _buf_[LOGFL_BUFFER_SIZE];                                  \
+        const char *_file_name_ = __FILE__;                             \
+        const size_t _last_ = sizeof(_buf_)-1;                          \
+        snprintf(_buf_, _last_, "tid:%ld %s(%d)#%s " fmt,               \
+                 (long)gettid(), BASE_FILE_NAME(_file_name_), __LINE__, \
+                 BASE_FUNC_NAME(__func__), ## __VA_ARGS__);             \
+        _buf_[_last_] = '\0';                                           \
+        LOG_PRI_PUTS(ANDROID_##priority, tag, _buf_);                   \
+    } while (0)
+
+
+#define LOG_FL_THIS_TID(priority, tag, fmt, ...)                    \
+    do {                                                            \
+        char _buf_[LOGFL_BUFFER_SIZE];                              \
+        const char *_file_name_ = __FILE__;                         \
+        const size_t _last_ = sizeof(_buf_)-1;                      \
+        snprintf(_buf_, _last_, "tid:%ld this:%p %s(%d)#%s " fmt,   \
+                 gettid(), this,                                    \
+                 BASE_FILE_NAME(_file_name_), __LINE__,             \
+                 BASE_FUNC_NAME(__func__), ## __VA_ARGS__);         \
+        _buf_[_last_] = '\0';                                       \
+        LOG_PRI_PUTS(ANDROID_##priority, tag, _buf_);               \
+    } while (0)
+
+#define LOG_FL_TIMESTAMP(priority, tag, fmt, ...)               \
+    do {                                                        \
+        char _buf_[LOGFL_BUFFER_SIZE];                          \
+        const char *_file_name_ = __FILE__;                     \
+        const size_t _last_ = sizeof(_buf_)-1;                  \
+        struct timeval __tv__;                                  \
+        gettimeofday(&__tv__, NULL);                            \
+        __tv__.tv_sec %= 1000;                                  \
+        snprintf(_buf_, _last_,                                 \
+                 "tid:%d this:%p ts:%ld.%03ld %s(%d)#%s " fmt,  \
+                 gettid(), this,                                \
+                 __tv__.tv_sec, (__tv__.tv_usec)/1000,          \
+                 BASE_FILE_NAME(_file_name_), __LINE__,         \
+                 BASE_FUNC_NAME(__func__), ## __VA_ARGS__);     \
+        _buf_[_last_] = 0;                                      \
+        LOG_PRI_PUTS(ANDROID_##priority, tag, _buf_);           \
+    } while (0)
+
+#endif  // LOG_FL
+
+    // ---------------------------------------------------------------------
+
+    /*
+     * Simplified macro to send a verbose log message using the current LOG_TAG.
+     */
 #ifndef ALOGV
 #if LOG_NDEBUG
 #define ALOGV(...)   ((void)0)
@@ -87,75 +154,75 @@ extern "C" {
 #if LOG_NDEBUG
 #define ALOGV_IF(cond, ...)   ((void)0)
 #else
-#define ALOGV_IF(cond, ...) \
-    ( (CONDITION(cond)) \
-    ? ((void)ALOG(LOG_VERBOSE, LOG_TAG, __VA_ARGS__)) \
-    : (void)0 )
+#define ALOGV_IF(cond, ...)                             \
+    ( (CONDITION(cond))                                 \
+      ? ((void)ALOG(LOG_VERBOSE, LOG_TAG, __VA_ARGS__)) \
+      : (void)0 )
 #endif
 #endif
 
-/*
- * Simplified macro to send a debug log message using the current LOG_TAG.
- */
+    /*
+     * Simplified macro to send a debug log message using the current LOG_TAG.
+     */
 #ifndef ALOGD
 #define ALOGD(...) ((void)ALOG(LOG_DEBUG, LOG_TAG, __VA_ARGS__))
 #endif
 
 #ifndef ALOGD_IF
-#define ALOGD_IF(cond, ...) \
-    ( (CONDITION(cond)) \
-    ? ((void)ALOG(LOG_DEBUG, LOG_TAG, __VA_ARGS__)) \
-    : (void)0 )
+#define ALOGD_IF(cond, ...)                             \
+    ( (CONDITION(cond))                                 \
+      ? ((void)ALOG(LOG_DEBUG, LOG_TAG, __VA_ARGS__))   \
+      : (void)0 )
 #endif
 
-/*
- * Simplified macro to send an info log message using the current LOG_TAG.
- */
+    /*
+     * Simplified macro to send an info log message using the current LOG_TAG.
+     */
 #ifndef ALOGI
 #define ALOGI(...) ((void)ALOG(LOG_INFO, LOG_TAG, __VA_ARGS__))
 #endif
 
 #ifndef ALOGI_IF
-#define ALOGI_IF(cond, ...) \
-    ( (CONDITION(cond)) \
-    ? ((void)ALOG(LOG_INFO, LOG_TAG, __VA_ARGS__)) \
-    : (void)0 )
+#define ALOGI_IF(cond, ...)                             \
+    ( (CONDITION(cond))                                 \
+      ? ((void)ALOG(LOG_INFO, LOG_TAG, __VA_ARGS__))    \
+      : (void)0 )
 #endif
 
-/*
- * Simplified macro to send a warning log message using the current LOG_TAG.
- */
+    /*
+     * Simplified macro to send a warning log message using the current LOG_TAG.
+     */
 #ifndef ALOGW
 #define ALOGW(...) ((void)ALOG(LOG_WARN, LOG_TAG, __VA_ARGS__))
 #endif
 
 #ifndef ALOGW_IF
-#define ALOGW_IF(cond, ...) \
-    ( (CONDITION(cond)) \
-    ? ((void)ALOG(LOG_WARN, LOG_TAG, __VA_ARGS__)) \
-    : (void)0 )
+#define ALOGW_IF(cond, ...)                             \
+    ( (CONDITION(cond))                                 \
+      ? ((void)ALOG(LOG_WARN, LOG_TAG, __VA_ARGS__))    \
+      : (void)0 )
 #endif
 
-/*
- * Simplified macro to send an error log message using the current LOG_TAG.
- */
+    /*
+     * Simplified macro to send an error log message using the current LOG_TAG.
+     */
 #ifndef ALOGE
 #define ALOGE(...) ((void)ALOG(LOG_ERROR, LOG_TAG, __VA_ARGS__))
 #endif
 
 #ifndef ALOGE_IF
-#define ALOGE_IF(cond, ...) \
-    ( (CONDITION(cond)) \
-    ? ((void)ALOG(LOG_ERROR, LOG_TAG, __VA_ARGS__)) \
-    : (void)0 )
+#define ALOGE_IF(cond, ...)                             \
+    ( (CONDITION(cond))                                 \
+      ? ((void)ALOG(LOG_ERROR, LOG_TAG, __VA_ARGS__))   \
+      : (void)0 )
 #endif
 
-// ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
 
-/*
- * Conditional based on whether the current LOG_TAG is enabled at
- * verbose priority.
- */
+    /*
+     * Conditional based on whether the current LOG_TAG is enabled at
+     * verbose priority.
+     */
 #ifndef IF_ALOGV
 #if LOG_NDEBUG
 #define IF_ALOGV() if (false)
@@ -164,44 +231,44 @@ extern "C" {
 #endif
 #endif
 
-/*
- * Conditional based on whether the current LOG_TAG is enabled at
- * debug priority.
- */
+    /*
+     * Conditional based on whether the current LOG_TAG is enabled at
+     * debug priority.
+     */
 #ifndef IF_ALOGD
 #define IF_ALOGD() IF_ALOG(LOG_DEBUG, LOG_TAG)
 #endif
 
-/*
- * Conditional based on whether the current LOG_TAG is enabled at
- * info priority.
- */
+    /*
+     * Conditional based on whether the current LOG_TAG is enabled at
+     * info priority.
+     */
 #ifndef IF_ALOGI
 #define IF_ALOGI() IF_ALOG(LOG_INFO, LOG_TAG)
 #endif
 
-/*
- * Conditional based on whether the current LOG_TAG is enabled at
- * warn priority.
- */
+    /*
+     * Conditional based on whether the current LOG_TAG is enabled at
+     * warn priority.
+     */
 #ifndef IF_ALOGW
 #define IF_ALOGW() IF_ALOG(LOG_WARN, LOG_TAG)
 #endif
 
-/*
- * Conditional based on whether the current LOG_TAG is enabled at
- * error priority.
- */
+    /*
+     * Conditional based on whether the current LOG_TAG is enabled at
+     * error priority.
+     */
 #ifndef IF_ALOGE
 #define IF_ALOGE() IF_ALOG(LOG_ERROR, LOG_TAG)
 #endif
 
 
-// ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
 
-/*
- * Simplified macro to send a verbose system log message using the current LOG_TAG.
- */
+    /*
+     * Simplified macro to send a verbose system log message using the current LOG_TAG.
+     */
 #ifndef SLOGV
 #if LOG_NDEBUG
 #define SLOGV(...)   ((void)0)
@@ -216,95 +283,95 @@ extern "C" {
 #if LOG_NDEBUG
 #define SLOGV_IF(cond, ...)   ((void)0)
 #else
-#define SLOGV_IF(cond, ...) \
-    ( (CONDITION(cond)) \
-    ? ((void)__android_log_buf_print(LOG_ID_SYSTEM, ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)) \
-    : (void)0 )
+#define SLOGV_IF(cond, ...)                                             \
+    ( (CONDITION(cond))                                                 \
+      ? ((void)__android_log_buf_print(LOG_ID_SYSTEM, ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)) \
+      : (void)0 )
 #endif
 #endif
 
-/*
- * Simplified macro to send a debug system log message using the current LOG_TAG.
- */
+    /*
+     * Simplified macro to send a debug system log message using the current LOG_TAG.
+     */
 #ifndef SLOGD
 #define SLOGD(...) ((void)__android_log_buf_print(LOG_ID_SYSTEM, ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__))
 #endif
 
 #ifndef SLOGD_IF
-#define SLOGD_IF(cond, ...) \
-    ( (CONDITION(cond)) \
-    ? ((void)__android_log_buf_print(LOG_ID_SYSTEM, ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)) \
-    : (void)0 )
+#define SLOGD_IF(cond, ...)                                             \
+    ( (CONDITION(cond))                                                 \
+      ? ((void)__android_log_buf_print(LOG_ID_SYSTEM, ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)) \
+      : (void)0 )
 #endif
 
-/*
- * Simplified macro to send an info system log message using the current LOG_TAG.
- */
+    /*
+     * Simplified macro to send an info system log message using the current LOG_TAG.
+     */
 #ifndef SLOGI
 #define SLOGI(...) ((void)__android_log_buf_print(LOG_ID_SYSTEM, ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__))
 #endif
 
 #ifndef SLOGI_IF
-#define SLOGI_IF(cond, ...) \
-    ( (CONDITION(cond)) \
-    ? ((void)__android_log_buf_print(LOG_ID_SYSTEM, ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)) \
-    : (void)0 )
+#define SLOGI_IF(cond, ...)                                             \
+    ( (CONDITION(cond))                                                 \
+      ? ((void)__android_log_buf_print(LOG_ID_SYSTEM, ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)) \
+      : (void)0 )
 #endif
 
-/*
- * Simplified macro to send a warning system log message using the current LOG_TAG.
- */
+    /*
+     * Simplified macro to send a warning system log message using the current LOG_TAG.
+     */
 #ifndef SLOGW
 #define SLOGW(...) ((void)__android_log_buf_print(LOG_ID_SYSTEM, ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__))
 #endif
 
 #ifndef SLOGW_IF
-#define SLOGW_IF(cond, ...) \
-    ( (CONDITION(cond)) \
-    ? ((void)__android_log_buf_print(LOG_ID_SYSTEM, ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)) \
-    : (void)0 )
+#define SLOGW_IF(cond, ...)                                             \
+    ( (CONDITION(cond))                                                 \
+      ? ((void)__android_log_buf_print(LOG_ID_SYSTEM, ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)) \
+      : (void)0 )
 #endif
 
-/*
- * Simplified macro to send an error system log message using the current LOG_TAG.
- */
+    /*
+     * Simplified macro to send an error system log message using the current LOG_TAG.
+     */
 #ifndef SLOGE
 #define SLOGE(...) ((void)__android_log_buf_print(LOG_ID_SYSTEM, ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__))
 #endif
 
 #ifndef SLOGE_IF
-#define SLOGE_IF(cond, ...) \
-    ( (CONDITION(cond)) \
-    ? ((void)__android_log_buf_print(LOG_ID_SYSTEM, ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)) \
-    : (void)0 )
+#define SLOGE_IF(cond, ...)                                             \
+    ( (CONDITION(cond))                                                 \
+      ? ((void)__android_log_buf_print(LOG_ID_SYSTEM, ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)) \
+      : (void)0 )
 #endif
 
     
 
-// ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
 
-/*
- * Log a fatal error.  If the given condition fails, this stops program
- * execution like a normal assertion, but also generating the given message.
- * It is NOT stripped from release builds.  Note that the condition test
- * is -inverted- from the normal assert() semantics.
- */
+    /*
+     * Log a fatal error.  If the given condition fails, this stops program
+     * execution like a normal assertion, but also generating the given message.
+     * It is NOT stripped from release builds.  Note that the condition test
+     * is -inverted- from the normal assert() semantics.
+     */
 #ifndef LOG_ALWAYS_FATAL_IF
-#define LOG_ALWAYS_FATAL_IF(cond, ...) \
-    ( (CONDITION(cond)) \
-    ? ((void)android_printAssert(#cond, LOG_TAG, ## __VA_ARGS__)) \
-    : (void)0 )
+#define LOG_ALWAYS_FATAL_IF(cond, ...)                              \
+    ( (CONDITION(cond))                                             \
+      ? ((void)android_printAssert(#cond, LOG_TAG, ## __VA_ARGS__)) \
+      : (void)0 )
 #endif
 
 #ifndef LOG_ALWAYS_FATAL
-#define LOG_ALWAYS_FATAL(...) \
+#define LOG_ALWAYS_FATAL(...)                                       \
     ( ((void)android_printAssert(NULL, LOG_TAG, ## __VA_ARGS__)) )
 #endif
 
-/*
- * Versions of LOG_ALWAYS_FATAL_IF and LOG_ALWAYS_FATAL that
- * are stripped out of release builds.
- */
+    /*
+     * Versions of LOG_ALWAYS_FATAL_IF and LOG_ALWAYS_FATAL that
+     * are stripped out of release builds.
+     */
 #if LOG_NDEBUG
 
 #ifndef LOG_FATAL_IF
@@ -325,158 +392,189 @@ extern "C" {
 
 #endif
 
-/*
- * Assertion that generates a log message when the assertion fails.
- * Stripped out of release builds.  Uses the current LOG_TAG.
- */
+    /*
+     * Assertion that generates a log message when the assertion fails.
+     * Stripped out of release builds.  Uses the current LOG_TAG.
+     */
 #ifndef ALOG_ASSERT
 #define ALOG_ASSERT(cond, ...) LOG_FATAL_IF(!(cond), ## __VA_ARGS__)
-//#define ALOG_ASSERT(cond) LOG_FATAL_IF(!(cond), "Assertion failed: " #cond)
+    //#define ALOG_ASSERT(cond) LOG_FATAL_IF(!(cond), "Assertion failed: " #cond)
 #endif
 
-// ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
 
-/*
- * Basic log message macro.
- *
- * Example:
- *  ALOG(LOG_WARN, NULL, "Failed with error %d", errno);
- *
- * The second argument may be NULL or "" to indicate the "global" tag.
- */
+    /*
+     * Basic log message macro.
+     *
+     * Example:
+     *  ALOG(LOG_WARN, NULL, "Failed with error %d", errno);
+     *
+     * The second argument may be NULL or "" to indicate the "global" tag.
+     */
 #ifndef ALOG
-#define ALOG(priority, tag, ...) \
+#define ALOG(priority, tag, ...)                    \
     LOG_PRI(ANDROID_##priority, tag, __VA_ARGS__)
 #endif
 
-/*
- * Log macro that allows you to specify a number for the priority.
- */
+    /*
+     * Log macro that allows you to specify a number for the priority.
+     */
 #ifndef LOG_PRI
-#define LOG_PRI(priority, tag, ...) \
+#define LOG_PRI(priority, tag, ...)                 \
     android_printLog(priority, tag, __VA_ARGS__)
 #endif
 
-/*
- * Log macro that allows you to pass in a varargs ("args" is a va_list).
- */
+    /*
+     * Log macro that allows you to pass in a varargs ("args" is a va_list).
+     */
 #ifndef LOG_PRI_VA
-#define LOG_PRI_VA(priority, tag, fmt, args) \
+#define LOG_PRI_VA(priority, tag, fmt, args)            \
     android_vprintLog(priority, NULL, tag, fmt, args)
 #endif
 
-/*
- * Conditional given a desired logging priority and tag.
- */
+    /*
+     * Conditional given a desired logging priority and tag.
+     */
 #ifndef IF_ALOG
-#define IF_ALOG(priority, tag) \
+#define IF_ALOG(priority, tag)                      \
     if (android_testLog(ANDROID_##priority, tag))
 #endif
 
-// ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
 
-/*
- * Event logging.
- */
+    /*
+     * Event logging.
+     */
 
-/*
- * Event log entry types.  These must match up with the declarations in
- * java/android/android/util/EventLog.java.
- */
-typedef enum {
-    EVENT_TYPE_INT      = 0,
-    EVENT_TYPE_LONG     = 1,
-    EVENT_TYPE_STRING   = 2,
-    EVENT_TYPE_LIST     = 3,
-} AndroidEventLogType;
+    /*
+     * Event log entry types.  These must match up with the declarations in
+     * java/android/android/util/EventLog.java.
+     */
+    typedef enum {
+        EVENT_TYPE_INT      = 0,
+        EVENT_TYPE_LONG     = 1,
+        EVENT_TYPE_STRING   = 2,
+        EVENT_TYPE_LIST     = 3,
+    } AndroidEventLogType;
 
 
 #ifndef LOG_EVENT_INT
-#define LOG_EVENT_INT(_tag, _value) {                                       \
-        int intBuf = _value;                                                \
-        (void) android_btWriteLog(_tag, EVENT_TYPE_INT, &intBuf,            \
-            sizeof(intBuf));                                                \
+#define LOG_EVENT_INT(_tag, _value) {                               \
+        int intBuf = _value;                                        \
+        (void) android_btWriteLog(_tag, EVENT_TYPE_INT, &intBuf,    \
+                                  sizeof(intBuf));                  \
     }
 #endif
 #ifndef LOG_EVENT_LONG
-#define LOG_EVENT_LONG(_tag, _value) {                                      \
-        long long longBuf = _value;                                         \
-        (void) android_btWriteLog(_tag, EVENT_TYPE_LONG, &longBuf,          \
-            sizeof(longBuf));                                               \
+#define LOG_EVENT_LONG(_tag, _value) {                              \
+        long long longBuf = _value;                                 \
+        (void) android_btWriteLog(_tag, EVENT_TYPE_LONG, &longBuf,  \
+                                  sizeof(longBuf));                 \
     }
 #endif
 #ifndef LOG_EVENT_STRING
-#define LOG_EVENT_STRING(_tag, _value)                                      \
+#define LOG_EVENT_STRING(_tag, _value)                                  \
     ((void) 0)  /* not implemented -- must combine len with string */
 #endif
-/* TODO: something for LIST */
+    /* TODO: something for LIST */
 
-/*
- * ===========================================================================
- *
- * The stuff in the rest of this file should not be used directly.
- */
+    /*
+     * ===========================================================================
+     *
+     * The stuff in the rest of this file should not be used directly.
+     */
 
-#define android_printLog(prio, tag, fmt...) \
+#define android_printLog(prio, tag, fmt...)     \
     __android_log_print(prio, tag, fmt)
 
-#define android_vprintLog(prio, cond, tag, fmt...) \
+#define android_vprintLog(prio, cond, tag, fmt...)  \
     __android_log_vprint(prio, tag, fmt)
 
-/* XXX Macros to work around syntax errors in places where format string
- * arg is not passed to ALOG_ASSERT, LOG_ALWAYS_FATAL or LOG_ALWAYS_FATAL_IF
- * (happens only in debug builds).
- */
+    /* XXX Macros to work around syntax errors in places where format string
+     * arg is not passed to ALOG_ASSERT, LOG_ALWAYS_FATAL or LOG_ALWAYS_FATAL_IF
+     * (happens only in debug builds).
+     */
 
-/* Returns 2nd arg.  Used to substitute default value if caller's vararg list
- * is empty.
- */
+    /* Returns 2nd arg.  Used to substitute default value if caller's vararg list
+     * is empty.
+     */
 #define __android_second(dummy, second, ...)     second
 
-/* If passed multiple args, returns ',' followed by all but 1st arg, otherwise
- * returns nothing.
- */
+    /* If passed multiple args, returns ',' followed by all but 1st arg, otherwise
+     * returns nothing.
+     */
 #define __android_rest(first, ...)               , ## __VA_ARGS__
 
-#define android_printAssert(cond, tag, fmt...) \
-    __android_log_assert(cond, tag, \
-        __android_second(0, ## fmt, NULL) __android_rest(fmt))
+#define android_printAssert(cond, tag, fmt...)                          \
+    __android_log_assert(cond, tag,                                     \
+                         __android_second(0, ## fmt, NULL) __android_rest(fmt))
 
-#define android_writeLog(prio, tag, text) \
+#define android_writeLog(prio, tag, text)       \
     __android_log_write(prio, tag, text)
 
-#define android_bWriteLog(tag, payload, len) \
+#define android_bWriteLog(tag, payload, len)    \
     __android_log_bwrite(tag, payload, len)
 #define android_btWriteLog(tag, type, payload, len) \
     __android_log_btwrite(tag, type, payload, len)
 
-// TODO: remove these prototypes and their users
+    // TODO: remove these prototypes and their users
 #define android_testLog(prio, tag) (1)
 #define android_writevLog(vec,num) do{}while(0)
 #define android_write1Log(str,len) do{}while (0)
 #define android_setMinPriority(tag, prio) do{}while(0)
-//#define android_logToCallback(func) do{}while(0)
+    //#define android_logToCallback(func) do{}while(0)
 #define android_logToFile(tag, file) (0)
 #define android_logToFd(tag, fd) (0)
 
-typedef enum {
-    LOG_ID_MAIN = 0,
-    LOG_ID_RADIO = 1,
-    LOG_ID_EVENTS = 2,
-    LOG_ID_SYSTEM = 3,
+    typedef enum {
+        LOG_ID_MAIN = 0,
+        LOG_ID_RADIO = 1,
+        LOG_ID_EVENTS = 2,
+        LOG_ID_SYSTEM = 3,
 
-    LOG_ID_MAX
-} log_id_t;
+        LOG_ID_MAX
+    } log_id_t;
 
-/*
- * Send a simple string to the log.
- */
-int __android_log_buf_write(int bufID, int prio, const char *tag, const char *text);
-int __android_log_buf_print(int bufID, int prio, const char *tag, const char *fmt, ...);
+    /*
+     * Send a simple string to the log.
+     */
+    int __android_log_buf_write(int bufID, int prio, const char *tag, const char *text);
+    int __android_log_buf_print(int bufID, int prio, const char *tag, const char *fmt, ...);
 
+
+#ifndef LOG_PRI_PUTS
+#define LOG_PRI_PUTS(priority, tag, buf)        \
+    android_printLog(priority, tag, "%s", buf)
+#endif
+
+#ifndef LOGFL
+#define LOGFL(fmt, ...)         LOG_FLT(LOG_ERROR, LOG_TAG, fmt, ## __VA_ARGS__)
+#define LOGFLT(fmt, ...)        LOG_FL_TIMESTAMP(LOG_ERROR, LOG_TAG, fmt, ## __VA_ARGS__)
+#define LOGFLV(fmt, ...)        LOG_FL_THIS_TID(LOG_ERROR, LOG_TAG, fmt, ## __VA_ARGS__)
+#define LOGFL_this(fmt, ...)    LOG_FL_THIS_TID(LOG_ERROR, LOG_TAG, fmt, ## __VA_ARGS__)
+    //#define LOGFL LOGV
+#endif
 
 #ifdef __cplusplus
 }
+#endif
+
+#include <cutils/easyutils.h>
+
+#ifndef LOGE
+#define LOGE ALOGE
+#endif
+
+#ifndef LOGW
+#define LOGW ALOGW
+#endif
+
+#ifndef LOGD
+#define LOGD ALOGD
+#endif
+
+#ifndef LOGI
+#define LOGI ALOGI
 #endif
 
 #endif // _LIBS_CUTILS_LOG_H
