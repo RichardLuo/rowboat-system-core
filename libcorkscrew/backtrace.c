@@ -52,7 +52,7 @@ extern int tgkill(int tgid, int tid, int sig);
 #include <unistd.h>
 #include <sys/syscall.h>
 
-static pid_t gettid() {
+static pid_t droid_gettid() {
   return syscall(__NR_gettid);
 }
 
@@ -87,7 +87,7 @@ static _Unwind_Reason_Code unwind_backtrace_callback(struct _Unwind_Context* con
 }
 
 ssize_t unwind_backtrace(backtrace_frame_t* backtrace, size_t ignore_depth, size_t max_depth) {
-    ALOGV("Unwinding current thread %d.", gettid());
+    ALOGV("Unwinding current thread %d.", droid_gettid());
 
     map_info_t* milist = acquire_my_map_info_list();
 
@@ -135,7 +135,7 @@ static void unwind_backtrace_thread_signal_handler(int n __attribute__((unused))
         android_atomic_release_store(STATE_DONE, &g_unwind_signal_state.tid_state);
     } else {
         ALOGV("Received spurious SIGURG on thread %d that was intended for thread %d.",
-                gettid(), android_atomic_acquire_load(&g_unwind_signal_state.tid_state));
+                droid_gettid(), android_atomic_acquire_load(&g_unwind_signal_state.tid_state));
     }
 }
 #endif
@@ -146,7 +146,7 @@ ssize_t unwind_backtrace_thread(pid_t tid, backtrace_frame_t* backtrace,
         return unwind_backtrace(backtrace, ignore_depth + 1, max_depth);
     }
 
-    ALOGV("Unwinding thread %d from thread %d.", tid, gettid());
+    ALOGV("Unwinding thread %d from thread %d.", tid, droid_gettid());
 
 #ifdef CORKSCREW_HAVE_ARCH
     struct sigaction act;
