@@ -429,37 +429,37 @@ service netd /system/bin/netd
 service debuggerd /system/bin/debuggerd
     class main
 
-service surfaceflinger /system/bin/surfaceflinger
-    class main
-    user system
-    group graphics drmrpc
-    onrestart restart zygote
+# service surfaceflinger /system/bin/surfaceflinger
+#     class main
+#     user system
+#     group graphics drmrpc
+#     onrestart restart zygote
 
-service zygote /system/bin/app_process -Xzygote /system/bin --zygote --start-system-server
-    class main
-    socket zygote stream 660 root system
-    onrestart write /sys/android_power/request_state wake
-    onrestart write /sys/power/state on
-    onrestart restart media
-    onrestart restart netd
+# service zygote /system/bin/app_process -Xzygote /system/bin --zygote --start-system-server
+#     class main
+#     socket zygote stream 660 root system
+#     onrestart write /sys/android_power/request_state wake
+#     onrestart write /sys/power/state on
+#     onrestart restart media
+#     onrestart restart netd
 
-service drm /system/bin/drmserver
-    class main
-    user drm
-    group drm system inet drmrpc
+# service drm /system/bin/drmserver
+#     class main
+#     user drm
+#     group drm system inet drmrpc
 
-service media /system/bin/mediaserver
-    class main
-    user media
-    group audio camera inet net_bt net_bt_admin net_bw_acct drmrpc
-    ioprio rt 4
+# service media /system/bin/mediaserver
+#     class main
+#     user media
+#     group audio camera inet net_bt net_bt_admin net_bw_acct drmrpc
+#     ioprio rt 4
 
-service bootanim /system/bin/bootanimation
-    class main
-    user graphics
-    group graphics
-    disabled
-    oneshot
+# service bootanim /system/bin/bootanimation
+#     class main
+#     user graphics
+#     group graphics
+#     disabled
+#     oneshot
 
 service installd /system/bin/installd
     class main
