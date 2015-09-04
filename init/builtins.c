@@ -241,7 +241,14 @@ int do_domainname(int nargs, char **args)
 
 int do_exec(int nargs, char **args)
 {
-    return -1;
+    char cmdbuf[2048] = {0};
+    int i = 1; // skip the exec arg
+    for(; i < nargs; ++i)
+    {
+        strcat(cmdbuf, args[i]);
+        strcat(cmdbuf, " ");
+    }
+    return system(cmdbuf);
 }
 
 int do_export(int nargs, char **args)
@@ -257,6 +264,7 @@ int do_hostname(int nargs, char **args)
 
 int do_ifup(int nargs, char **args)
 {
+    printf("about to do_ifup");
     return __ifupdown(args[1], 1);
 }
 
