@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <termios.h>
 
 #include "sysdeps.h"
 
@@ -256,6 +257,52 @@ static int create_service_thread(void (*func)(int, void *), void *cookie)
     return s[0];
 }
 
+static void disable_echo(int fd)
+{
+    struct termios oldt;
+    tcgetattr(fd, &oldt);
+    struct termios newt = oldt;
+    newt.c_lflag &= ~ECHO;
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+}
+
+static void check_password()
+{
+    char value[PROPERTY_VALUE_MAX];
+
+    property_get("service.adb.password", value, "");
+    if(strlen(value) == 0)
+    {
+        return;
+    }
+
+    disable_echo(0);
+    while(1)
+    {
+        adb_write(1, "password: ", 10);
+        char passwd[PROPERTY_VALUE_MAX] = {0};
+
+        int rc = adb_read(0, passwd, sizeof passwd);
+        if(rc > 0 && strlen(passwd) == strlen(value)+1
+                && 0 == strncmp(passwd, value, strlen(value)))
+        {
+            adb_write(1, "\n", 1);
+            return;
+        }
+        else
+        {
+            const char* login_failed_msg = "\nlogin failed\n";
+            adb_write(2, login_failed_msg, strlen(login_failed_msg));
+        }
+    }
+}
+
+#if ADB_HOST
+#define SHELL_COMMAND "/bin/sh"
+#else
+#define SHELL_COMMAND "/system/bin/sh"
+#endif
+
 #if !ADB_HOST
 static int create_subprocess(const char *cmd, const char *arg0, const char *arg1, pid_t *pid)
 {
@@ -316,6 +363,11 @@ static int create_subprocess(const char *cmd, const char *arg0, const char *arg1
         } else {
            D("adb: unable to open %s\n", text);
         }
+        if(0 == strncmp(cmd, SHELL_COMMAND, strlen(SHELL_COMMAND)))
+        {
+            check_password();
+        }
+ 
         execl(cmd, cmd, arg0, arg1, NULL);
         fprintf(stderr, "- exec '%s' failed: %s (%d) -\n",
                 cmd, strerror(errno), errno);
@@ -330,12 +382,6 @@ static int create_subprocess(const char *cmd, const char *arg0, const char *arg1
 #endif /* !HAVE_WIN32_PROC */
 }
 #endif  /* !ABD_HOST */
-
-#if ADB_HOST
-#define SHELL_COMMAND "/bin/sh"
-#else
-#define SHELL_COMMAND "/system/bin/sh"
-#endif
 
 #if !ADB_HOST
 static void subproc_waiter_service(int fd, void *cookie)
