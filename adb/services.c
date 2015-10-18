@@ -266,12 +266,17 @@ static void disable_echo(int fd)
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 }
 
+static int get_adb_password(char* value)
+{
+    property_get("service.adb.password", value, "");
+    return strlen(value);
+}
+
 static void check_password()
 {
     char value[PROPERTY_VALUE_MAX];
 
-    property_get("service.adb.password", value, "");
-    if(strlen(value) == 0)
+    if(get_adb_password(value) < 1)
     {
         return;
     }
@@ -503,20 +508,38 @@ int service_to_fd(const char *name)
             ret = create_subproc_thread(0);
         }
     } else if(!strncmp(name, "sync:", 5)) {
+        char value[PROPERTY_VALUE_MAX];
+        if(get_adb_password(value) > 0)
+            return -1;
         ret = create_service_thread(file_sync_service, NULL);
     } else if(!strncmp(name, "remount:", 8)) {
+        char value[PROPERTY_VALUE_MAX];
+        if(get_adb_password(value) > 0)
+            return -1;
         ret = create_service_thread(remount_service, NULL);
     } else if(!strncmp(name, "reboot:", 7)) {
+        char value[PROPERTY_VALUE_MAX];
+        if(get_adb_password(value) > 0)
+            return -1;
         void* arg = strdup(name + 7);
         if(arg == 0) return -1;
         ret = create_service_thread(reboot_service, arg);
     } else if(!strncmp(name, "root:", 5)) {
+        char value[PROPERTY_VALUE_MAX];
+        if(get_adb_password(value) > 0)
+            return -1;
         ret = create_service_thread(restart_root_service, NULL);
     } else if(!strncmp(name, "backup:", 7)) {
+        char value[PROPERTY_VALUE_MAX];
+        if(get_adb_password(value) > 0)
+            return -1;
         char* arg = strdup(name+7);
         if (arg == NULL) return -1;
         ret = backup_service(BACKUP, arg);
     } else if(!strncmp(name, "restore:", 8)) {
+        char value[PROPERTY_VALUE_MAX];
+        if(get_adb_password(value) > 0)
+            return -1;
         ret = backup_service(RESTORE, NULL);
     } else if(!strncmp(name, "tcpip:", 6)) {
         int port;
