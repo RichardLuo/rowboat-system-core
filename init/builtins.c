@@ -241,14 +241,27 @@ int do_domainname(int nargs, char **args)
 
 int do_exec(int nargs, char **args)
 {
-    char cmdbuf[2048] = {0};
-    int i = 1; // skip the exec arg
+    char cmdbuf[2048] = {0}, output[2048] = {0};
+    int i = 1, rc = 0; // skip the exec arg
+    FILE* fp = NULL;
     for(; i < nargs; ++i)
     {
         strcat(cmdbuf, args[i]);
         strcat(cmdbuf, " ");
     }
-    return system(cmdbuf);
+    strcat(cmdbuf, " 2>&1");
+    KLOG_ERROR("init", "exec %s \n", cmdbuf);
+    fp = popen(cmdbuf, "r");
+    if (fp == NULL) {
+        KLOG_ERROR("init", "failed to run command: %s\n", cmdbuf);
+    } else {
+        while (fgets(output, sizeof(output)-1, fp) != NULL) {
+            KLOG_ERROR("init", "      %s", output);
+        }
+    }
+    rc = pclose(fp);
+    KLOG_ERROR("init", "      exec return code is %d\n", WEXITSTATUS(rc));
+    return rc;
 }
 
 int do_export(int nargs, char **args)

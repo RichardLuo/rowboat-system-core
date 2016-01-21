@@ -551,7 +551,10 @@ void execute_one_command(void)
         return;
 
     ret = cur_command->func(cur_command->nargs, cur_command->args);
-    INFO("command '%s' r=%d\n", cur_command->args[0], ret);
+    if(ret == 0)
+        INFO("command '%s' r=%d\n", cur_command->args[0], ret);
+    else
+        ERROR("command '%s %s' r=%d\n", cur_command->args[0], cur_command->args[1], ret);
 }
 
 static int wait_for_coldboot_done_action(int nargs, char **args)
