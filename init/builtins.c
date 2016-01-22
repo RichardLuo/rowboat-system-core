@@ -410,6 +410,8 @@ int do_mount(int nargs, char **args)
     system = args[1];
     source = args[2];
     target = args[3];
+    ERROR("mounting fs type %s %s to %s with flags 0x%04x option %s",
+            system, source, target, flags, options);
 
     if (!strncmp(source, "mtd@", 4)) {
         n = mtd_name_to_number(source + 4);
@@ -470,6 +472,8 @@ int do_mount(int nargs, char **args)
         if (wait)
             wait_for_file(source, COMMAND_RETRY_TIMEOUT);
         if (mount(source, target, system, flags, options) < 0) {
+            ERROR("mount fs type %s %s to %s with flags 0x%04x option %s failed! errno is %d",
+                    system, source, target, flags, options, errno);
             return -1;
         }
 
