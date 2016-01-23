@@ -410,7 +410,7 @@ int do_mount(int nargs, char **args)
     system = args[1];
     source = args[2];
     target = args[3];
-    ERROR("mounting fs type %s %s to %s with flags 0x%04x option %s",
+    ERROR("mounting fs (type %s) %s to %s with flags 0x%04x option %s",
             system, source, target, flags, options);
 
     if (!strncmp(source, "mtd@", 4)) {
