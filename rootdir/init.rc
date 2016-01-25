@@ -82,11 +82,11 @@ loglevel 3
     mount tmpfs tmpfs /mnt/obb mode=0755,gid=1000
 
     write /proc/sys/kernel/panic_on_oops 1
-    write /proc/sys/kernel/hung_task_timeout_secs 0
+    #write /proc/sys/kernel/hung_task_timeout_secs 0
     write /proc/cpu/alignment 4
     write /proc/sys/kernel/sched_latency_ns 10000000
     write /proc/sys/kernel/sched_wakeup_granularity_ns 2000000
-    write /proc/sys/kernel/sched_compat_yield 1
+    #write /proc/sys/kernel/sched_compat_yield 1
     write /proc/sys/kernel/sched_child_runs_first 0
     write /proc/sys/kernel/randomize_va_space 2
     write /proc/sys/kernel/kptr_restrict 2
@@ -97,24 +97,24 @@ loglevel 3
 
 # Create cgroup mount points for process groups
     mkdir /dev/cpuctl
-    mount cgroup none /dev/cpuctl cpu
-    chown system system /dev/cpuctl
-    chown system system /dev/cpuctl/tasks
-    chmod 0660 /dev/cpuctl/tasks
+    #mount cgroup none /dev/cpuctl cpu
+    #chown system system /dev/cpuctl
+    #chown system system /dev/cpuctl/tasks
+    #chmod 0660 /dev/cpuctl/tasks
     write /dev/cpuctl/cpu.shares 1024
     write /dev/cpuctl/cpu.rt_runtime_us 950000
     write /dev/cpuctl/cpu.rt_period_us 1000000
 
     mkdir /dev/cpuctl/apps
-    chown system system /dev/cpuctl/apps/tasks
-    chmod 0666 /dev/cpuctl/apps/tasks
+    #chown system system /dev/cpuctl/apps/tasks
+    #chmod 0666 /dev/cpuctl/apps/tasks
     write /dev/cpuctl/apps/cpu.shares 1024
     write /dev/cpuctl/apps/cpu.rt_runtime_us 800000
     write /dev/cpuctl/apps/cpu.rt_period_us 1000000
 
     mkdir /dev/cpuctl/apps/bg_non_interactive
-    chown system system /dev/cpuctl/apps/bg_non_interactive/tasks
-    chmod 0666 /dev/cpuctl/apps/bg_non_interactive/tasks
+    #chown system system /dev/cpuctl/apps/bg_non_interactive/tasks
+    #chmod 0666 /dev/cpuctl/apps/bg_non_interactive/tasks
     # 5.0 %
     write /dev/cpuctl/apps/bg_non_interactive/cpu.shares 52
     write /dev/cpuctl/apps/bg_non_interactive/cpu.rt_runtime_us 700000
@@ -138,8 +138,8 @@ on post-fs
     restorecon /cache
 
     # This may have been created by the recovery system with odd permissions
-    chown system cache /cache/recovery
-    chmod 0770 /cache/recovery
+    #chown system cache /cache/recovery
+    #chmod 0770 /cache/recovery
     # This may have been created by the recovery system with the wrong context.
     restorecon /cache/recovery
 
@@ -155,8 +155,8 @@ on post-fs
     chmod 0440 /proc/kmsg
     chown root system /proc/sysrq-trigger
     chmod 0220 /proc/sysrq-trigger
-    chown system log /proc/last_kmsg
-    chmod 0440 /proc/last_kmsg
+    #chown system log /proc/last_kmsg
+    #chmod 0440 /proc/last_kmsg
 
     # create the lost+found directories, so as to enforce our permissions
     mkdir /cache/lost+found 0770 root root
@@ -174,15 +174,15 @@ on post-fs-data
     mkdir /data/dontpanic 0750 root log
 
     # Collect apanic data, free resources and re-arm trigger
-    copy /proc/apanic_console /data/dontpanic/apanic_console
-    chown root log /data/dontpanic/apanic_console
-    chmod 0640 /data/dontpanic/apanic_console
+    #copy /proc/apanic_console /data/dontpanic/apanic_console
+    #chown root log /data/dontpanic/apanic_console
+    #chmod 0640 /data/dontpanic/apanic_console
 
-    copy /proc/apanic_threads /data/dontpanic/apanic_threads
-    chown root log /data/dontpanic/apanic_threads
-    chmod 0640 /data/dontpanic/apanic_threads
+    #copy /proc/apanic_threads /data/dontpanic/apanic_threads
+    #chown root log /data/dontpanic/apanic_threads
+    #chmod 0640 /data/dontpanic/apanic_threads
 
-    write /proc/apanic_console 1
+    #write /proc/apanic_console 1
 
     # create basic filesystem structure
     mkdir /data/misc 01771 system misc
@@ -196,7 +196,7 @@ on post-fs-data
     mkdir /data/misc/systemkeys 0700 system system
     # give system access to wpa_supplicant.conf for backup and restore
     mkdir /data/misc/wifi 0770 wifi wifi
-    chmod 0660 /data/misc/wifi/wpa_supplicant.conf
+    #chmod 0660 /data/misc/wifi/wpa_supplicant.conf
     mkdir /data/local 0751 root root
 
     # For security reasons, /data/local/tmp should always be empty.
@@ -256,12 +256,12 @@ on boot
     write /proc/sys/vm/dirty_background_ratio  5
 
     # Permissions for System Server and daemons.
-    chown radio system /sys/android_power/state
-    chown radio system /sys/android_power/request_state
-    chown radio system /sys/android_power/acquire_full_wake_lock
-    chown radio system /sys/android_power/acquire_partial_wake_lock
-    chown radio system /sys/android_power/release_wake_lock
-    chown system system /sys/power/autosleep
+    #chown radio system /sys/android_power/state
+    #chown radio system /sys/android_power/request_state
+    #chown radio system /sys/android_power/acquire_full_wake_lock
+    #chown radio system /sys/android_power/acquire_partial_wake_lock
+    #chown radio system /sys/android_power/release_wake_lock
+    #chown system system /sys/power/autosleep
     chown system system /sys/power/state
     chown system system /sys/power/wakeup_count
     chown radio system /sys/power/wake_lock
@@ -270,47 +270,46 @@ on boot
     chmod 0660 /sys/power/wake_lock
     chmod 0660 /sys/power/wake_unlock
 
-    chown system system /sys/devices/system/cpu/cpufreq/interactive/timer_rate
-    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/timer_rate
-    chown system system /sys/devices/system/cpu/cpufreq/interactive/min_sample_time
-    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/min_sample_time
-    chown system system /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq
-    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq
-    chown system system /sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load
-    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load
-    chown system system /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay
-    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay
-    chown system system /sys/devices/system/cpu/cpufreq/interactive/boost
-    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/boost
-    chown system system /sys/devices/system/cpu/cpufreq/interactive/boostpulse
-    chown system system /sys/devices/system/cpu/cpufreq/interactive/input_boost
-    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/input_boost
-    chown system system /sys/devices/system/cpu/cpufreq/interactive/boostpulse_duration
-    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/boostpulse_duration
+    #chown system system /sys/devices/system/cpu/cpufreq/interactive/timer_rate
+    #chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/timer_rate
+    #chown system system /sys/devices/system/cpu/cpufreq/interactive/min_sample_time
+    #chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/min_sample_time
+    #chown system system /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq
+    #chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq
+    #chown system system /sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load
+    #chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load
+    #chown system system /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay
+    #chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay
+    #chown system system /sys/devices/system/cpu/cpufreq/interactive/boost
+    #chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/boost
+    #chown system system /sys/devices/system/cpu/cpufreq/interactive/boostpulse
+    #chown system system /sys/devices/system/cpu/cpufreq/interactive/input_boost
+    #chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/input_boost
+    #chown system system /sys/devices/system/cpu/cpufreq/interactive/boostpulse_duration
+    #chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/boostpulse_duration
 
     # Assume SMP uses shared cpufreq policy for all CPUs
-    chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
-    chmod 0660 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+    #chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+    #chmod 0660 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
 
-    chown system system /sys/class/timed_output/vibrator/enable
-    chown system system /sys/class/leds/keyboard-backlight/brightness
-    chown system system /sys/class/leds/lcd-backlight/brightness
-    chown system system /sys/class/leds/button-backlight/brightness
-    chown system system /sys/class/leds/jogball-backlight/brightness
-    chown system system /sys/class/leds/red/brightness
-    chown system system /sys/class/leds/green/brightness
-    chown system system /sys/class/leds/blue/brightness
-    chown system system /sys/class/leds/red/device/grpfreq
-    chown system system /sys/class/leds/red/device/grppwm
-    chown system system /sys/class/leds/red/device/blink
-    chown system system /sys/class/leds/red/brightness
-    chown system system /sys/class/leds/green/brightness
-    chown system system /sys/class/leds/blue/brightness
-    chown system system /sys/class/leds/red/device/grpfreq
-    chown system system /sys/class/leds/red/device/grppwm
-    chown system system /sys/class/leds/red/device/blink
-    chown system system /sys/class/timed_output/vibrator/enable
-    chown system system /sys/module/sco/parameters/disable_esco
+    #chown system system /sys/class/timed_output/vibrator/enable
+    #chown system system /sys/class/leds/keyboard-backlight/brightness
+    #chown system system /sys/class/leds/lcd-backlight/brightness
+    #chown system system /sys/class/leds/button-backlight/brightness
+    #chown system system /sys/class/leds/jogball-backlight/brightness
+    #chown system system /sys/class/leds/red/brightness
+    #chown system system /sys/class/leds/green/brightness
+    #chown system system /sys/class/leds/blue/brightness
+    #chown system system /sys/class/leds/red/device/grpfreq
+    #chown system system /sys/class/leds/red/device/grppwm
+    #chown system system /sys/class/leds/red/device/blink
+    #chown system system /sys/class/leds/red/brightness
+    #chown system system /sys/class/leds/green/brightness
+    #chown system system /sys/class/leds/blue/brightness
+    #chown system system /sys/class/leds/red/device/grpfreq
+    #chown system system /sys/class/leds/red/device/grppwm
+    #chown system system /sys/class/leds/red/device/blink
+    #chown system system /sys/module/sco/parameters/disable_esco
     chown system system /sys/kernel/ipv4/tcp_wmem_min
     chown system system /sys/kernel/ipv4/tcp_wmem_def
     chown system system /sys/kernel/ipv4/tcp_wmem_max
