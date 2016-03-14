@@ -49,7 +49,7 @@ loglevel 3
 
 # Create cgroup mount point for cpu accounting
     mkdir /acct
-    mount cgroup none /acct cpuacct
+    #mount cgroup none /acct cpuacct
     mkdir /acct/uid
 
     mkdir /system
