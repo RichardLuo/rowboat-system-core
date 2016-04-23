@@ -452,21 +452,21 @@ service debuggerd /system/bin/debuggerd
 #     disabled
 #     oneshot
 
-service installd /system/bin/installd
-    class main
-    socket installd stream 600 system system
+#service installd /system/bin/installd
+#    class main
+#    socket installd stream 600 system system
 
-service flash_recovery /system/etc/install-recovery.sh
-    class main
-    oneshot
+#service flash_recovery /system/etc/install-recovery.sh
+#    class main
+#    oneshot
 
-service racoon /system/bin/racoon
-    class main
-    socket racoon stream 600 system system
-    # IKE uses UDP port 500. Racoon will setuid to vpn after binding the port.
-    group vpn net_admin inet
-    disabled
-    oneshot
+#service racoon /system/bin/racoon
+#    class main
+#    socket racoon stream 600 system system
+#    # IKE uses UDP port 500. Racoon will setuid to vpn after binding the port.
+#    group vpn net_admin inet
+#    disabled
+#    oneshot
 
 service mtpd /system/bin/mtpd
     class main
