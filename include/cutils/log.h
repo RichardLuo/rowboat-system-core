@@ -559,7 +559,7 @@ extern "C" {
 }
 #endif
 
-#include <cutils/easyutils.h>
+#include <cutils/easymacros.h>
 
 #ifndef LOGE
 #define LOGE ALOGE
