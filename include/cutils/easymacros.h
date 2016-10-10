@@ -69,6 +69,12 @@
         }                                       \
     } while (0)
 
+#define LOG_EXIT(info_fmt, ...)                 \
+    do {                                        \
+        LOGFL(info_fmt, ## __VA_ARGS__);        \
+        LOG_ALWAYS_FATAL(" CRASHED HERE!!");    \
+    } while (0)
+
 #define LOG_IF_EXIT(cond,info_fmt, ...)             \
     do {                                            \
         if ((cond)) {                               \
