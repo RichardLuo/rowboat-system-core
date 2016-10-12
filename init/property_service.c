@@ -355,8 +355,8 @@ int property_set(const char *name, const char *value)
     pi = (prop_info*) __system_property_find(name);
 
     if(pi != 0) {
-        /* ro.* properties may NEVER be modified once set */
-        if(!strncmp(name, "ro.", 3)) return -1;
+        /* ro.* properties may NEVER be modified once set to a not empty value*/
+        if(!strncmp(name, "ro.", 3) && strlen(pi->value) > 0) return -1;
 
         pa = __system_property_area__;
         update_prop_info(pi, value, valuelen);
