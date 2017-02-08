@@ -4,7 +4,7 @@
 # This is a common source of Android security bugs.
 #
 
-import /init.usb.rc
+#import /init.usb.rc
 import /init.${ro.hardware}.rc
 import /init.trace.rc
 
@@ -46,6 +46,8 @@ loglevel 3
 # Right now vendor lives on the same filesystem as system,
 # but someday that may change.
     symlink /system/vendor /vendor
+    mkdir /system/bin
+    symlink /sbin/sh /system/bin/sh
 
 # Create cgroup mount point for cpu accounting
     mkdir /acct
@@ -245,11 +247,6 @@ on boot
 # level system server to be able to adjust the kernel OOM driver
 # parameters to match how it is managing things.
     write /proc/sys/vm/overcommit_memory 1
-    write /proc/sys/vm/min_free_order_shift 4
-    chown root system /sys/module/lowmemorykiller/parameters/adj
-    chmod 0664 /sys/module/lowmemorykiller/parameters/adj
-    chown root system /sys/module/lowmemorykiller/parameters/minfree
-    chmod 0664 /sys/module/lowmemorykiller/parameters/minfree
 
     # Tweak background writeout
     write /proc/sys/vm/dirty_expire_centisecs 200
@@ -310,12 +307,6 @@ on boot
     #chown system system /sys/class/leds/red/device/grppwm
     #chown system system /sys/class/leds/red/device/blink
     #chown system system /sys/module/sco/parameters/disable_esco
-    chown system system /sys/kernel/ipv4/tcp_wmem_min
-    chown system system /sys/kernel/ipv4/tcp_wmem_def
-    chown system system /sys/kernel/ipv4/tcp_wmem_max
-    chown system system /sys/kernel/ipv4/tcp_rmem_min
-    chown system system /sys/kernel/ipv4/tcp_rmem_def
-    chown system system /sys/kernel/ipv4/tcp_rmem_max
     chown root radio /proc/cmdline
 
 # Define TCP buffer sizes for various networks
