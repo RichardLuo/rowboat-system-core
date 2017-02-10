@@ -70,4 +70,6 @@ void load_ptrace_map_info_data_arch(pid_t pid, map_info_t* mi, map_info_data_t* 
 }
 
 void free_ptrace_map_info_data_arch(map_info_t* mi, map_info_data_t* data) {
+    (void*)mi;
+    (void*)data;
 }

@@ -556,7 +556,7 @@ ssize_t unwind_backtrace_signal_arch(siginfo_t* siginfo, void* sigcontext,
         const map_info_t* map_info_list,
         backtrace_frame_t* backtrace, size_t ignore_depth, size_t max_depth) {
     const ucontext_t* uc = (const ucontext_t*)sigcontext;
-
+    (void*)siginfo;
     unwind_state_t state;
 
     state.gregs[0] = uc->uc_mcontext.arm_r0;
