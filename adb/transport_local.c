@@ -154,6 +154,23 @@ static void *client_socket_thread(void *x)
     return 0;
 }
 
+static void get_serial_for_addr(char* serial, struct sockaddr* addr) {
+    switch(addr->sa_family) {
+        case AF_INET: {
+            struct sockaddr_in *addr_in = (struct sockaddr_in *)addr;
+            inet_ntop(AF_INET, &(addr_in->sin_addr), serial, INET_ADDRSTRLEN);
+            break;
+        }
+        case AF_INET6: {
+            struct sockaddr_in6 *addr_in6 = (struct sockaddr_in6 *)addr;
+            inet_ntop(AF_INET6, &(addr_in6->sin6_addr), serial, INET6_ADDRSTRLEN);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 static void *server_socket_thread(void * arg)
 {
     int serverfd, fd;
@@ -179,9 +196,11 @@ static void *server_socket_thread(void * arg)
         fd = adb_socket_accept(serverfd, &addr, &alen);
         if(fd >= 0) {
             D("server: new connection on fd %d\n", fd);
+            char serial[INET6_ADDRSTRLEN+1] = {0};
+            get_serial_for_addr(serial, &addr);
             close_on_exec(fd);
             disable_tcp_nagle(fd);
-            register_socket_transport(fd, "host", port, 1);
+            register_socket_transport(fd, serial, port, 1);
         }
     }
     D("transport: server_socket_thread() exiting\n");
