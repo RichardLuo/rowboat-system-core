@@ -15,4 +15,4 @@ include $(BUILD_HOST_STATIC_LIBRARY)
 
 
 # TODO: drop the hyphen once these are checked in
-include $(LOCAL_PATH)/tools/Android.mk
+# include $(LOCAL_PATH)/tools/Android.mk
