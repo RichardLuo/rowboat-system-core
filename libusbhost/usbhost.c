@@ -368,7 +368,9 @@ char* usb_device_get_name_from_unique_id(int id)
     snprintf(result, strlen(USB_FS_ID_FORMAT) - 1, USB_FS_ID_FORMAT, bus, dev);
     return result;
 }
-
+#ifdef __MIPSEB__
+#define __le16_to_cpu(x) (x >> 8 | x << 8)
+#endif
 uint16_t usb_device_get_vendor_id(struct usb_device *device)
 {
     struct usb_device_descriptor* desc = (struct usb_device_descriptor*)device->desc;
