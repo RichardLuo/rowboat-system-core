@@ -34,8 +34,13 @@
 #define MAX_PACKET_SIZE_FS	64
 #define MAX_PACKET_SIZE_HS	512
 
+#ifdef __MIPSEB__
+#define cpu_to_le16(x)  htons(x)
+#define cpu_to_le32(x)  htonl(x)
+#else
 #define cpu_to_le16(x)  htole16(x)
 #define cpu_to_le32(x)  htole32(x)
+#endif
 
 struct usb_handle
 {
