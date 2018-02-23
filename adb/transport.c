@@ -1038,7 +1038,6 @@ int register_socket_transport(int s, const char *serial, int port, int local)
     adb_mutex_unlock(&transport_lock);
 
     register_transport(t);
-    D("%d\n", __LINE__);
     return 0;
 }
 
