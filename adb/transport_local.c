@@ -155,12 +155,10 @@ static void *client_socket_thread(void *x)
 }
 
 static void get_serial_for_addr(char* serial, struct sockaddr* addr) {
-    unsigned short port = 0;
     switch(addr->sa_family) {
         case AF_INET: {
             struct sockaddr_in *addr_in = (struct sockaddr_in *)addr;
             inet_ntop(AF_INET, &(addr_in->sin_addr), serial, INET_ADDRSTRLEN);
-            port = addr_in->sin_port;
             break;
         }
         case AF_INET6: {
@@ -171,8 +169,6 @@ static void get_serial_for_addr(char* serial, struct sockaddr* addr) {
         default:
             break;
     }
-    char *end = serial+strlen(serial);
-    sprintf(end, ":%u", port);
 }
 
 static void *server_socket_thread(void * arg)
@@ -200,7 +196,7 @@ static void *server_socket_thread(void * arg)
         fd = adb_socket_accept(serverfd, &addr, &alen);
         if(fd >= 0) {
             D("server: new connection on fd %d\n", fd);
-            char serial[INET6_ADDRSTRLEN+32] = {0};
+            char serial[INET6_ADDRSTRLEN+1] = {0};
             get_serial_for_addr(serial, &addr);
             close_on_exec(fd);
             disable_tcp_nagle(fd);

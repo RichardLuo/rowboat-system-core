@@ -1024,9 +1024,11 @@ int register_socket_transport(int s, const char *serial, int port, int local)
 
     for (n = transport_list.next; n != &transport_list; n = n->next) {
         if (n->serial && !strcmp(serial, n->serial)) {
-            adb_mutex_unlock(&transport_lock);
-            free(t);
-            return -1;
+             transport_unref_locked(n);
+            D("remove a existing transport %p(%s) from the same client", n, n->serial);
+            /*adb_mutex_unlock(&transport_lock);*/
+            /*free(t);*/
+            /*return -1;*/
         }
     }
 
