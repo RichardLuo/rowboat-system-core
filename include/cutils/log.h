@@ -561,20 +561,47 @@ extern "C" {
 
 #include <cutils/easymacros.h>
 
+#ifdef  DISABLE_LOGX
+#define DISABLE_LOGE
+#define DISABLE_LOGW
+#define DISABLE_LOGD
+#define DISABLE_LOGI
+#endif
+
+#ifdef DISABLE_LOGE
+#undef LOGE
+#define LOGE(...) do {} while(0)
+#else
 #ifndef LOGE
 #define LOGE ALOGE
 #endif
+#endif
 
+#ifdef DISABLE_LOGW
+#undef LOGW
+#define LOGW(...) do {} while(0)
+#else
 #ifndef LOGW
 #define LOGW ALOGW
 #endif
+#endif
 
+#ifdef DISABLE_LOGD
+#undef LOGD
+#define LOGD(...) do {} while(0)
+#else
 #ifndef LOGD
 #define LOGD ALOGD
 #endif
+#endif
 
+#ifdef DISABLE_LOGI
+#undef LOGI
+#define LOGI(...) do {} while(0)
+#else
 #ifndef LOGI
 #define LOGI ALOGI
+#endif
 #endif
 
 #endif // _LIBS_CUTILS_LOG_H
