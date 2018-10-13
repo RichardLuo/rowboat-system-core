@@ -586,6 +586,14 @@ extern "C" {
 #endif
 #endif
 
+#ifndef LOG86
+#ifdef ARCH_X86
+#define LOG86(...) ((void)LOGW(__VA_ARGS__))
+#else
+#define LOG86(...) do {} while(0)
+#endif
+#endif
+
 #ifdef DISABLE_LOGD
 #undef LOGD
 #define LOGD(...) do {} while(0)
