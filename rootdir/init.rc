@@ -389,8 +389,6 @@ on property:ro.kernel.qemu=1
 
 service servicemanager /system/bin/servicemanager
     class core
-    user system
-    group system
     critical
     onrestart restart zygote
     onrestart restart media
@@ -469,8 +467,6 @@ service mtpd /system/bin/mtpd
 
 service keystore /system/bin/keystore /data/misc/keystore
     class main
-    user keystore
-    group keystore drmrpc
     socket keystore stream 666
 
 service dumpstate /system/bin/dumpstate -s
@@ -479,14 +475,3 @@ service dumpstate /system/bin/dumpstate -s
     disabled
     oneshot
 
-service sshd /system/bin/start-ssh
-    class main
-    disabled
-
-service mdnsd /system/bin/mdnsd
-    class main
-    user mdnsr
-    group inet net_raw
-    socket mdnsd stream 0660 mdnsr inet
-    disabled
-    oneshot
