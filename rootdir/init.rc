@@ -6,7 +6,7 @@
 
 #import /init.usb.rc
 import /init.${ro.hardware}.rc
-import /init.trace.rc
+#import /init.trace.rc
 
 on early-init
     # Set init and its forked children's oom_adj.
@@ -369,7 +369,7 @@ on property:selinux.reload_policy=1
 service console /system/bin/sh
     class core
     console
-    disabled
+#    disabled
 #    user shell
     group log
 
