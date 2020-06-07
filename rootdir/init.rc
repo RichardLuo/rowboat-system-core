@@ -237,7 +237,7 @@ on post-fs-data
 on boot
 # basic network init
     ifup lo
-    hostname localhost
+    hostname terncy
     domainname localdomain
 
 # set RLIMIT_NICE to allow priorities from 19 to -20
