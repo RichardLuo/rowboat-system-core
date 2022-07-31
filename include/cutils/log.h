@@ -599,6 +599,10 @@ extern "C" {
 #endif
 #endif
 
+#ifndef PRINTF
+#define PRINTF(...) do { fprintf(stderr, __VA_ARGS__); fputs("\n", stderr); } while (0)
+#endif
+
 #ifdef DISABLE_LOGD
 #undef LOGD
 #define LOGD(...) do {} while(0)
