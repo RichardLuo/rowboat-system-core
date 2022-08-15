@@ -593,9 +593,9 @@ extern "C" {
 
 #ifndef LOG86
 #ifdef ARCH_X86
-#define LOG86(...) ((void)LOGW(__VA_ARGS__))
+#define LOGX86(...) ((void)LOGW(__VA_ARGS__))
 #else
-#define LOG86(...) do {} while(0)
+#define LOGX86(...) do {} while(0)
 #endif
 #endif
 
