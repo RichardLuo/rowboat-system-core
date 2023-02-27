@@ -29,7 +29,7 @@
 #include <cutils/logd.h>
 #include <cutils/log.h>
 
-#define LOG_BUF_SIZE	4096
+#define LOG_BUF_SIZE	1024
 
 #if FAKE_LOG_DEVICE
 // This will be defined when building for the host.
